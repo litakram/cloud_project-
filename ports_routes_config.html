@@ -1,0 +1,402 @@
+
+<style>
+* { box-sizing: border-box; }
+h2.sr-only { position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0); }
+.tabs { display:flex; gap:4px; margin-bottom:16px; flex-wrap:wrap; }
+.tab { padding:6px 14px; border:0.5px solid var(--color-border-tertiary); border-radius:20px; font-size:13px; cursor:pointer; background:transparent; color:var(--color-text-secondary); transition:background .15s,color .15s; }
+.tab.active { background:var(--color-background-secondary); color:var(--color-text-primary); border-color:var(--color-border-secondary); }
+.panel { display:none; }
+.panel.active { display:block; }
+.section-label { font-size:12px; font-weight:500; color:var(--color-text-tertiary); text-transform:uppercase; letter-spacing:.04em; margin:18px 0 8px; }
+.section-label:first-child { margin-top:0; }
+.code-block { background:var(--color-background-secondary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); padding:12px 14px; font-family:var(--font-mono); font-size:12px; line-height:1.8; color:var(--color-text-secondary); overflow-x:auto; }
+.code-block .cmt { color:var(--color-text-tertiary); }
+.code-block .kw { color:var(--color-text-info); }
+.code-block .str { color:var(--color-text-success); }
+.code-block .fn { color:var(--color-text-warning); }
+.tip { font-size:12px; color:var(--color-text-secondary); padding:8px 12px; border-radius:0; border-left:3px solid var(--color-border-secondary); margin-top:10px; line-height:1.6; background:var(--color-background-secondary); }
+.tip strong { color:var(--color-text-primary); font-weight:500; }
+.file-label { font-size:12px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-bottom:4px; }
+.gap { margin-bottom:14px; }
+</style>
+
+<h2 class="sr-only">Port and route configuration for all 4 microservices</h2>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('env',this)">1 · .env files</button>
+  <button class="tab" onclick="show('auth',this)">2 · auth-service</button>
+  <button class="tab" onclick="show('courses',this)">3 · course-service</button>
+  <button class="tab" onclick="show('lessons',this)">4 · lesson-service</button>
+  <button class="tab" onclick="show('progress',this)">5 · progress-service</button>
+</div>
+
+<!-- ENV -->
+<div id="env" class="panel active">
+  <div class="section-label">Start here — one .env per service</div>
+  <div class="file-label">auth-service/.env</div>
+  <div class="code-block gap">
+PORT=3001<br>
+MONGO_URI=mongodb://localhost:27017/auth_db<br>
+JWT_SECRET=your_super_secret_key
+  </div>
+  <div class="file-label">course-service/.env</div>
+  <div class="code-block gap">
+PORT=3002<br>
+MONGO_URI=mongodb://localhost:27017/course_db<br>
+JWT_SECRET=your_super_secret_key
+  </div>
+  <div class="file-label">lesson-service/.env</div>
+  <div class="code-block gap">
+PORT=3003<br>
+MONGO_URI=mongodb://localhost:27017/lesson_db<br>
+JWT_SECRET=your_super_secret_key<br>
+COURSE_SERVICE_URL=http://localhost:3002<br>
+RABBITMQ_URL=amqp://localhost
+  </div>
+  <div class="file-label">progress-service/.env</div>
+  <div class="code-block gap">
+PORT=3004<br>
+MONGO_URI=mongodb://localhost:27017/progress_db<br>
+JWT_SECRET=your_super_secret_key<br>
+RABBITMQ_URL=amqp://localhost
+  </div>
+  <div class="tip">
+    <strong>Same JWT_SECRET across all services.</strong> Every service verifies tokens independently — they all need the same secret or tokens from auth-service won't validate elsewhere.<br><br>
+    <strong>Docker note:</strong> when you add Docker Compose later, swap <code>localhost</code> → service name: <code>COURSE_SERVICE_URL=http://course-service:3002</code>, <code>RABBITMQ_URL=amqp://rabbitmq</code>, <code>MONGO_URI=mongodb://mongo-auth:27017/auth_db</code>.
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth" class="panel">
+  <div class="section-label">auth-service/app.js</div>
+  <div class="code-block gap">
+<span class="kw">require</span>(<span class="str">'dotenv'</span>).config();<br>
+<span class="kw">const</span> express = <span class="kw">require</span>(<span class="str">'express'</span>);<br>
+<span class="kw">const</span> mongoose = <span class="kw">require</span>(<span class="str">'mongoose'</span>);<br>
+<span class="kw">const</span> authRoutes = <span class="kw">require</span>(<span class="str">'./routes/auth'</span>);<br>
+<br>
+<span class="kw">const</span> app = express();<br>
+app.use(express.json());<br>
+<br>
+mongoose.connect(process.env.MONGO_URI)<br>
+&nbsp;&nbsp;.then(() => console.log(<span class="str">'Auth DB connected'</span>))<br>
+&nbsp;&nbsp;.catch(err => console.error(err));<br>
+<br>
+app.use(<span class="str">'/auth'</span>, authRoutes);<br>
+<br>
+app.listen(process.env.PORT, () => {<br>
+&nbsp;&nbsp;console.log(<span class="str">`Auth service running on port ${process.env.PORT}`</span>);<br>
+});
+  </div>
+
+  <div class="section-label">auth-service/routes/auth.js</div>
+  <div class="code-block gap">
+<span class="kw">const</span> router = <span class="kw">require</span>(<span class="str">'express'</span>).Router();<br>
+<span class="kw">const</span> bcrypt = <span class="kw">require</span>(<span class="str">'bcrypt'</span>);<br>
+<span class="kw">const</span> jwt = <span class="kw">require</span>(<span class="str">'jsonwebtoken'</span>);<br>
+<span class="kw">const</span> User = <span class="kw">require</span>(<span class="str">'../models/User'</span>);<br>
+<br>
+<span class="cmt">// POST /auth/register</span><br>
+router.post(<span class="str">'/register'</span>, <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> { name, email, password, role } = req.body;<br>
+&nbsp;&nbsp;<span class="kw">const</span> hashed = <span class="kw">await</span> bcrypt.hash(password, 10);<br>
+&nbsp;&nbsp;<span class="kw">const</span> user = <span class="kw">await</span> User.create({ name, email, password: hashed, role });<br>
+&nbsp;&nbsp;res.status(201).json({ id: user._id, email: user.email, role: user.role });<br>
+});<br>
+<br>
+<span class="cmt">// POST /auth/login</span><br>
+router.post(<span class="str">'/login'</span>, <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> { email, password } = req.body;<br>
+&nbsp;&nbsp;<span class="kw">const</span> user = <span class="kw">await</span> User.findOne({ email });<br>
+&nbsp;&nbsp;<span class="kw">if</span> (!user || !(<span class="kw">await</span> bcrypt.compare(password, user.password)))<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> res.status(401).json({ error: <span class="str">'Invalid credentials'</span> });<br>
+&nbsp;&nbsp;<span class="kw">const</span> token = jwt.sign(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ id: user._id, role: user.role },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;process.env.JWT_SECRET,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ expiresIn: <span class="str">'7d'</span> }<br>
+&nbsp;&nbsp;);<br>
+&nbsp;&nbsp;res.json({ token });<br>
+});<br>
+<br>
+module.exports = router;
+  </div>
+
+  <div class="section-label">auth-service/middleware/verifyToken.js — copy this to every service</div>
+  <div class="code-block">
+<span class="kw">const</span> jwt = <span class="kw">require</span>(<span class="str">'jsonwebtoken'</span>);<br>
+<br>
+<span class="fn">module.exports</span> = (req, res, next) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> header = req.headers.authorization;<br>
+&nbsp;&nbsp;<span class="kw">if</span> (!header) <span class="kw">return</span> res.status(401).json({ error: <span class="str">'No token'</span> });<br>
+&nbsp;&nbsp;<span class="kw">const</span> token = header.split(<span class="str">' '</span>)[1]; <span class="cmt">// "Bearer &lt;token&gt;"</span><br>
+&nbsp;&nbsp;<span class="kw">try</span> {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;req.user = jwt.verify(token, process.env.JWT_SECRET);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;next();<br>
+&nbsp;&nbsp;} <span class="kw">catch</span> {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;res.status(403).json({ error: <span class="str">'Invalid token'</span> });<br>
+&nbsp;&nbsp;}<br>
+};
+  </div>
+</div>
+
+<!-- COURSES -->
+<div id="courses" class="panel">
+  <div class="section-label">course-service/app.js</div>
+  <div class="code-block gap">
+<span class="kw">require</span>(<span class="str">'dotenv'</span>).config();<br>
+<span class="kw">const</span> express = <span class="kw">require</span>(<span class="str">'express'</span>);<br>
+<span class="kw">const</span> mongoose = <span class="kw">require</span>(<span class="str">'mongoose'</span>);<br>
+<span class="kw">const</span> courseRoutes = <span class="kw">require</span>(<span class="str">'./routes/courses'</span>);<br>
+<br>
+<span class="kw">const</span> app = express();<br>
+app.use(express.json());<br>
+mongoose.connect(process.env.MONGO_URI);<br>
+<br>
+app.use(<span class="str">'/courses'</span>, courseRoutes);<br>
+<br>
+app.listen(process.env.PORT, () =><br>
+&nbsp;&nbsp;console.log(<span class="str">`Course service on port ${process.env.PORT}`</span>));
+  </div>
+
+  <div class="section-label">course-service/routes/courses.js</div>
+  <div class="code-block">
+<span class="kw">const</span> router = <span class="kw">require</span>(<span class="str">'express'</span>).Router();<br>
+<span class="kw">const</span> verify = <span class="kw">require</span>(<span class="str">'../middleware/verifyToken'</span>);<br>
+<span class="kw">const</span> Course = <span class="kw">require</span>(<span class="str">'../models/Course'</span>);<br>
+<span class="kw">const</span> Enrollment = <span class="kw">require</span>(<span class="str">'../models/Enrollment'</span>);<br>
+<br>
+<span class="cmt">// Role guard helper</span><br>
+<span class="kw">const</span> <span class="fn">requireRole</span> = role => (req, res, next) => {<br>
+&nbsp;&nbsp;<span class="kw">if</span> (req.user.role !== role) <span class="kw">return</span> res.status(403).json({ error: <span class="str">'Forbidden'</span> });<br>
+&nbsp;&nbsp;next();<br>
+};<br>
+<br>
+<span class="cmt">// GET /courses — public catalog</span><br>
+router.get(<span class="str">'/'</span>, <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> courses = <span class="kw">await</span> Course.find();<br>
+&nbsp;&nbsp;res.json(courses);<br>
+});<br>
+<br>
+<span class="cmt">// POST /courses — formateur only</span><br>
+router.post(<span class="str">'/'</span>, verify, requireRole(<span class="str">'formateur'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> course = <span class="kw">await</span> Course.create({ ...req.body, formateurId: req.user.id });<br>
+&nbsp;&nbsp;res.status(201).json(course);<br>
+});<br>
+<br>
+<span class="cmt">// PUT /courses/:id — formateur only</span><br>
+router.put(<span class="str">'/:id'</span>, verify, requireRole(<span class="str">'formateur'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> course = <span class="kw">await</span> Course.findByIdAndUpdate(req.params.id, req.body, { new: <span class="kw">true</span> });<br>
+&nbsp;&nbsp;res.json(course);<br>
+});<br>
+<br>
+<span class="cmt">// DELETE /courses/:id — formateur only</span><br>
+router.delete(<span class="str">'/:id'</span>, verify, requireRole(<span class="str">'formateur'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">await</span> Course.findByIdAndDelete(req.params.id);<br>
+&nbsp;&nbsp;res.json({ message: <span class="str">'Deleted'</span> });<br>
+});<br>
+<br>
+<span class="cmt">// POST /courses/:id/enroll — apprenant only</span><br>
+router.post(<span class="str">'/:id/enroll'</span>, verify, requireRole(<span class="str">'apprenant'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> exists = <span class="kw">await</span> Enrollment.findOne({ userId: req.user.id, courseId: req.params.id });<br>
+&nbsp;&nbsp;<span class="kw">if</span> (exists) <span class="kw">return</span> res.status(400).json({ error: <span class="str">'Already enrolled'</span> });<br>
+&nbsp;&nbsp;<span class="kw">const</span> enrollment = <span class="kw">await</span> Enrollment.create({ userId: req.user.id, courseId: req.params.id });<br>
+&nbsp;&nbsp;res.status(201).json(enrollment);<br>
+});<br>
+<br>
+<span class="cmt">// GET /courses/:id/enrollment?userId=X — called by lesson-service</span><br>
+router.get(<span class="str">'/:id/enrollment'</span>, <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> { userId } = req.query;<br>
+&nbsp;&nbsp;<span class="kw">const</span> enrollment = <span class="kw">await</span> Enrollment.findOne({ userId, courseId: req.params.id });<br>
+&nbsp;&nbsp;res.json({ enrolled: !!enrollment });<br>
+});<br>
+<br>
+module.exports = router;
+  </div>
+</div>
+
+<!-- LESSONS -->
+<div id="lessons" class="panel">
+  <div class="section-label">lesson-service/app.js</div>
+  <div class="code-block gap">
+<span class="kw">require</span>(<span class="str">'dotenv'</span>).config();<br>
+<span class="kw">const</span> express = <span class="kw">require</span>(<span class="str">'express'</span>);<br>
+<span class="kw">const</span> mongoose = <span class="kw">require</span>(<span class="str">'mongoose'</span>);<br>
+<span class="kw">const</span> lessonRoutes = <span class="kw">require</span>(<span class="str">'./routes/lessons'</span>);<br>
+<br>
+<span class="kw">const</span> app = express();<br>
+app.use(express.json());<br>
+mongoose.connect(process.env.MONGO_URI);<br>
+<br>
+app.use(<span class="str">'/lessons'</span>, lessonRoutes);<br>
+<br>
+app.listen(process.env.PORT, () =><br>
+&nbsp;&nbsp;console.log(<span class="str">`Lesson service on port ${process.env.PORT}`</span>));
+  </div>
+
+  <div class="section-label">lesson-service/routes/lessons.js</div>
+  <div class="code-block gap">
+<span class="kw">const</span> router = <span class="kw">require</span>(<span class="str">'express'</span>).Router();<br>
+<span class="kw">const</span> axios = <span class="kw">require</span>(<span class="str">'axios'</span>);<br>
+<span class="kw">const</span> verify = <span class="kw">require</span>(<span class="str">'../middleware/verifyToken'</span>);<br>
+<span class="kw">const</span> Lesson = <span class="kw">require</span>(<span class="str">'../models/Lesson'</span>);<br>
+<span class="kw">const</span> { publishLessonCompleted } = <span class="kw">require</span>(<span class="str">'../services/rabbitmq'</span>);<br>
+<br>
+<span class="kw">const</span> <span class="fn">requireRole</span> = role => (req, res, next) => {<br>
+&nbsp;&nbsp;<span class="kw">if</span> (req.user.role !== role) <span class="kw">return</span> res.status(403).json({ error: <span class="str">'Forbidden'</span> });<br>
+&nbsp;&nbsp;next();<br>
+};<br>
+<br>
+<span class="cmt">// Enrollment check middleware (synchronous REST call)</span><br>
+<span class="kw">const</span> <span class="fn">checkEnrolled</span> = <span class="kw">async</span> (req, res, next) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> lesson = <span class="kw">await</span> Lesson.findById(req.params.id);<br>
+&nbsp;&nbsp;<span class="kw">if</span> (!lesson) <span class="kw">return</span> res.status(404).json({ error: <span class="str">'Lesson not found'</span> });<br>
+&nbsp;&nbsp;<span class="kw">const</span> { data } = <span class="kw">await</span> axios.get(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">`${process.env.COURSE_SERVICE_URL}/courses/${lesson.courseId}/enrollment`</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ params: { userId: req.user.id } }<br>
+&nbsp;&nbsp;);<br>
+&nbsp;&nbsp;<span class="kw">if</span> (!data.enrolled) <span class="kw">return</span> res.status(403).json({ error: <span class="str">'Not enrolled in this course'</span> });<br>
+&nbsp;&nbsp;req.lesson = lesson; <span class="cmt">// pass to next handler</span><br>
+&nbsp;&nbsp;next();<br>
+};<br>
+<br>
+<span class="cmt">// POST /lessons — formateur only</span><br>
+router.post(<span class="str">'/'</span>, verify, requireRole(<span class="str">'formateur'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> lesson = <span class="kw">await</span> Lesson.create(req.body);<br>
+&nbsp;&nbsp;res.status(201).json(lesson);<br>
+});<br>
+<br>
+<span class="cmt">// GET /lessons/:id — apprenant, must be enrolled</span><br>
+router.get(<span class="str">'/:id'</span>, verify, checkEnrolled, (req, res) => {<br>
+&nbsp;&nbsp;res.json(req.lesson);<br>
+});<br>
+<br>
+<span class="cmt">// PUT /lessons/:id — formateur only</span><br>
+router.put(<span class="str">'/:id'</span>, verify, requireRole(<span class="str">'formateur'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> lesson = <span class="kw">await</span> Lesson.findByIdAndUpdate(req.params.id, req.body, { new: <span class="kw">true</span> });<br>
+&nbsp;&nbsp;res.json(lesson);<br>
+});<br>
+<br>
+<span class="cmt">// DELETE /lessons/:id — formateur only</span><br>
+router.delete(<span class="str">'/:id'</span>, verify, requireRole(<span class="str">'formateur'</span>), <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">await</span> Lesson.findByIdAndDelete(req.params.id);<br>
+&nbsp;&nbsp;res.json({ message: <span class="str">'Deleted'</span> });<br>
+});<br>
+<br>
+<span class="cmt">// POST /lessons/:id/complete — apprenant, must be enrolled</span><br>
+router.post(<span class="str">'/:id/complete'</span>, verify, checkEnrolled, <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">await</span> publishLessonCompleted({<br>
+&nbsp;&nbsp;&nbsp;&nbsp;userId: req.user.id,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;lessonId: req.lesson._id,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;courseId: req.lesson.courseId<br>
+&nbsp;&nbsp;});<br>
+&nbsp;&nbsp;res.json({ message: <span class="str">'Lesson marked as completed'</span> });<br>
+});<br>
+<br>
+module.exports = router;
+  </div>
+
+  <div class="section-label">lesson-service/services/rabbitmq.js — producer</div>
+  <div class="code-block">
+<span class="kw">const</span> amqp = <span class="kw">require</span>(<span class="str">'amqplib'</span>);<br>
+<br>
+<span class="kw">let</span> channel;<br>
+<span class="kw">const</span> QUEUE = <span class="str">'lesson.completed'</span>;<br>
+<br>
+<span class="kw">async function</span> <span class="fn">connect</span>() {<br>
+&nbsp;&nbsp;<span class="kw">const</span> conn = <span class="kw">await</span> amqp.connect(process.env.RABBITMQ_URL);<br>
+&nbsp;&nbsp;channel = <span class="kw">await</span> conn.createChannel();<br>
+&nbsp;&nbsp;<span class="kw">await</span> channel.assertQueue(QUEUE, { durable: <span class="kw">true</span> });<br>
+}<br>
+<br>
+<span class="kw">async function</span> <span class="fn">publishLessonCompleted</span>(payload) {<br>
+&nbsp;&nbsp;<span class="kw">if</span> (!channel) <span class="kw">await</span> connect();<br>
+&nbsp;&nbsp;channel.sendToQueue(QUEUE, Buffer.from(JSON.stringify(payload)), { persistent: <span class="kw">true</span> });<br>
+}<br>
+<br>
+module.exports = { publishLessonCompleted };
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress" class="panel">
+  <div class="section-label">progress-service/app.js</div>
+  <div class="code-block gap">
+<span class="kw">require</span>(<span class="str">'dotenv'</span>).config();<br>
+<span class="kw">const</span> express = <span class="kw">require</span>(<span class="str">'express'</span>);<br>
+<span class="kw">const</span> mongoose = <span class="kw">require</span>(<span class="str">'mongoose'</span>);<br>
+<span class="kw">const</span> progressRoutes = <span class="kw">require</span>(<span class="str">'./routes/progress'</span>);<br>
+<span class="kw">const</span> { startConsumer } = <span class="kw">require</span>(<span class="str">'./services/rabbitmq'</span>);<br>
+<br>
+<span class="kw">const</span> app = express();<br>
+app.use(express.json());<br>
+<br>
+mongoose.connect(process.env.MONGO_URI).then(<span class="kw">async</span> () => {<br>
+&nbsp;&nbsp;console.log(<span class="str">'Progress DB connected'</span>);<br>
+&nbsp;&nbsp;<span class="kw">await</span> startConsumer(); <span class="cmt">// start listening to RabbitMQ after DB is ready</span><br>
+});<br>
+<br>
+app.use(<span class="str">'/progress'</span>, progressRoutes);<br>
+<br>
+app.listen(process.env.PORT, () =><br>
+&nbsp;&nbsp;console.log(<span class="str">`Progress service on port ${process.env.PORT}`</span>));
+  </div>
+
+  <div class="section-label">progress-service/services/rabbitmq.js — consumer</div>
+  <div class="code-block gap">
+<span class="kw">const</span> amqp = <span class="kw">require</span>(<span class="str">'amqplib'</span>);<br>
+<span class="kw">const</span> Progress = <span class="kw">require</span>(<span class="str">'../models/Progress'</span>);<br>
+<br>
+<span class="kw">const</span> QUEUE = <span class="str">'lesson.completed'</span>;<br>
+<br>
+<span class="kw">async function</span> <span class="fn">startConsumer</span>() {<br>
+&nbsp;&nbsp;<span class="kw">const</span> conn = <span class="kw">await</span> amqp.connect(process.env.RABBITMQ_URL);<br>
+&nbsp;&nbsp;<span class="kw">const</span> channel = <span class="kw">await</span> conn.createChannel();<br>
+&nbsp;&nbsp;<span class="kw">await</span> channel.assertQueue(QUEUE, { durable: <span class="kw">true</span> });<br>
+&nbsp;&nbsp;channel.prefetch(1);<br>
+&nbsp;&nbsp;console.log(<span class="str">'Waiting for messages on lesson.completed...'</span>);<br>
+<br>
+&nbsp;&nbsp;channel.consume(QUEUE, <span class="kw">async</span> (msg) => {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (!msg) <span class="kw">return</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> { userId, lessonId, courseId } = JSON.parse(msg.content.toString());<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">await</span> Progress.findOneAndUpdate(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ userId, lessonId },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ userId, lessonId, courseId, completedAt: <span class="kw">new</span> Date() },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ upsert: <span class="kw">true</span> }<br>
+&nbsp;&nbsp;&nbsp;&nbsp;);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;channel.ack(msg); <span class="cmt">// confirm processed</span><br>
+&nbsp;&nbsp;});<br>
+}<br>
+<br>
+module.exports = { startConsumer };
+  </div>
+
+  <div class="section-label">progress-service/routes/progress.js</div>
+  <div class="code-block">
+<span class="kw">const</span> router = <span class="kw">require</span>(<span class="str">'express'</span>).Router();<br>
+<span class="kw">const</span> verify = <span class="kw">require</span>(<span class="str">'../middleware/verifyToken'</span>);<br>
+<span class="kw">const</span> Progress = <span class="kw">require</span>(<span class="str">'../models/Progress'</span>);<br>
+<br>
+<span class="cmt">// GET /progress/dashboard — apprenant sees their own progress</span><br>
+router.get(<span class="str">'/dashboard'</span>, verify, <span class="kw">async</span> (req, res) => {<br>
+&nbsp;&nbsp;<span class="kw">const</span> entries = <span class="kw">await</span> Progress.find({ userId: req.user.id });<br>
+&nbsp;&nbsp;<span class="kw">const</span> byCourse = entries.reduce((acc, p) => {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">const</span> key = p.courseId.toString();<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> (!acc[key]) acc[key] = { courseId: key, completedLessons: [] };<br>
+&nbsp;&nbsp;&nbsp;&nbsp;acc[key].completedLessons.push(p.lessonId);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> acc;<br>
+&nbsp;&nbsp;}, {});<br>
+&nbsp;&nbsp;res.json(Object.values(byCourse));<br>
+});<br>
+<br>
+module.exports = router;
+  </div>
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
