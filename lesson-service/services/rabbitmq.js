@@ -7,6 +7,14 @@ async function connect() {
   const conn = await amqp.connect(process.env.RABBITMQ_URL);
   channel = await conn.createChannel();
   await channel.assertQueue(QUEUE, { durable: true });
+  conn.on('close', () => {
+    console.warn('RabbitMQ connection closed — will reconnect on next publish');
+    channel = null;
+  });
+  conn.on('error', (err) => {
+    console.error('RabbitMQ connection error:', err.message);
+    channel = null;
+  });
 }
 
 async function publishLessonCompleted(payload) {

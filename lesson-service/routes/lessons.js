@@ -1,32 +1,15 @@
 const router = require('express').Router();
-const axios = require('axios');
 const verify = require('../middleware/verifyToken');
-const Lesson = require('../models/Lesson');
+const checkEnrolled = require('../middleware/checkEnrolled');
 const { publishLessonCompleted } = require('../services/rabbitmq');
+const Lesson = require('../models/Lesson');
 
 const requireRole = role => (req, res, next) => {
   if (req.user.role !== role) return res.status(403).json({ error: 'Forbidden' });
   next();
 };
 
-// Enrollment check middleware (synchronous REST call)
-const checkEnrolled = async (req, res, next) => {
-  try {
-    const lesson = await Lesson.findById(req.params.id);
-    if (!lesson) return res.status(404).json({ error: 'Lesson not found' });
-
-    const { data } = await axios.get(
-      `${process.env.COURSE_SERVICE_URL}/courses/${lesson.courseId}/enrollment`,
-      { params: { userId: req.user.id } }
-    );
-
-    if (!data.enrolled) return res.status(403).json({ error: 'Not enrolled in this course' });
-    req.lesson = lesson;
-    next();
-  } catch (err) {
-    next(err);
-  }
-};
+// checkEnrolled middleware moved to middleware/checkEnrolled.js
 
 // POST /lessons — formateur only
 router.post('/', verify, requireRole('formateur'), async (req, res, next) => {
@@ -68,8 +51,8 @@ router.post('/:id/complete', verify, requireRole('apprenant'), checkEnrolled, as
   try {
     await publishLessonCompleted({
       userId: req.user.id,
-      lessonId: req.lesson._id,
-      courseId: req.lesson.courseId
+      lessonId: req.lesson._id.toString(),
+      courseId: req.lesson.courseId.toString()
     });
     res.json({ message: 'Lesson marked as completed' });
   } catch (err) {

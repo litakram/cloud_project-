@@ -12,13 +12,18 @@ async function startConsumer() {
 
   channel.consume(QUEUE, async (msg) => {
     if (!msg) return;
-    const { userId, lessonId, courseId } = JSON.parse(msg.content.toString());
-    await Progress.findOneAndUpdate(
-      { userId, lessonId },
-      { userId, lessonId, courseId, completedAt: new Date() },
-      { upsert: true }
-    );
-    channel.ack(msg); // confirm processed
+    try {
+      const { userId, lessonId, courseId } = JSON.parse(msg.content.toString());
+      await Progress.findOneAndUpdate(
+        { userId, lessonId },
+        { userId, lessonId, courseId, completedAt: new Date() },
+        { upsert: true, new: true, runValidators: true }
+      );
+      channel.ack(msg);
+    } catch (err) {
+      console.error('Failed to process lesson.completed message:', err.message);
+      channel.nack(msg, false, true);
+    }
   });
 }
 

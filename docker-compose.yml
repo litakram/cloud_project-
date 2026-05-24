@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-auth:
+    image: mongo:6
+    volumes:
+      - mongo-auth-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-course:
+    image: mongo:6
+    volumes:
+      - mongo-course-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-lesson:
+    image: mongo:6
+    volumes:
+      - mongo-lesson-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-progress:
+    image: mongo:6
+    volumes:
+      - mongo-progress-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      MONGO_URI: mongodb://mongo-auth:27017/auth_db
+      JWT_SECRET: add77799f7e7bbc9d4fdbd95c2f9e6ad5923870656766e008489ddf2e8f911bd
+    depends_on:
+      mongo-auth:
+        condition: service_healthy
+
+  course-service:
+    build: ./course-service
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      MONGO_URI: mongodb://mongo-course:27017/course_db
+      JWT_SECRET: add77799f7e7bbc9d4fdbd95c2f9e6ad5923870656766e008489ddf2e8f911bd
+    depends_on:
+      mongo-course:
+        condition: service_healthy
+
+  lesson-service:
+    build: ./lesson-service
+    ports:
+      - "3003:3003"
+    environment:
+      PORT: 3003
+      MONGO_URI: mongodb://mongo-lesson:27017/lesson_db
+      JWT_SECRET: add77799f7e7bbc9d4fdbd95c2f9e6ad5923870656766e008489ddf2e8f911bd
+      COURSE_SERVICE_URL: http://course-service:3002
+      RABBITMQ_URL: amqp://rabbitmq
+    depends_on:
+      mongo-lesson:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  progress-service:
+    build: ./progress-service
+    ports:
+      - "3004:3004"
+    environment:
+      PORT: 3004
+      MONGO_URI: mongodb://mongo-progress:27017/progress_db
+      JWT_SECRET: add77799f7e7bbc9d4fdbd95c2f9e6ad5923870656766e008489ddf2e8f911bd
+      RABBITMQ_URL: amqp://rabbitmq
+    depends_on:
+      mongo-progress:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mongo-auth-data:
+  mongo-course-data:
+  mongo-lesson-data:
+  mongo-progress-data:

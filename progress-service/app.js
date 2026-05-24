@@ -10,7 +10,7 @@ app.use(express.json());
 mongoose.connect(process.env.MONGO_URI)
   .then(async () => {
     console.log('Progress DB connected');
-    await startConsumer(); // start listening to RabbitMQ after DB is ready
+    await startConsumer();
   })
   .catch(err => { console.error(err); process.exit(1); });
 
