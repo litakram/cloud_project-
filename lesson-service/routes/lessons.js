@@ -9,6 +9,65 @@ const requireRole = role => (req, res, next) => {
   next();
 };
 
+/**
+ * @openapi
+ * /lessons:
+ *   post:
+ *     summary: Create a lesson
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               courseId:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Lesson created
+ */
+
+/**
+ * @openapi
+ * /lessons:
+ *   get:
+ *     summary: List lessons for a course
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: courseId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Array of lessons for the course
+ *       400:
+ *         description: courseId query param required
+ */
+
+router.get('/', verify, requireRole('apprenant'), checkEnrolled, async (req, res, next) => {
+  try {
+    const { courseId } = req.query;
+    if (!courseId) return res.status(400).json({ error: 'courseId query param required' });
+
+    const lessons = await Lesson.find({ courseId }).sort({ order: 1, createdAt: 1 });
+    res.json(lessons);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // checkEnrolled middleware moved to middleware/checkEnrolled.js
 
 // POST /lessons — formateur only
@@ -21,11 +80,49 @@ router.post('/', verify, requireRole('formateur'), async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /lessons/{id}:
+ *   get:
+ *     summary: Get a lesson by id
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lesson details
+ *       403:
+ *         description: Forbidden
+ */
 // GET /lessons/:id — apprenant, must be enrolled
 router.get('/:id', verify, requireRole('apprenant'), checkEnrolled, (req, res) => {
   res.json(req.lesson);
 });
 
+/**
+ * @openapi
+ * /lessons/{id}:
+ *   put:
+ *     summary: Update a lesson
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lesson updated
+ */
 // PUT /lessons/:id — formateur only
 router.put('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -36,6 +133,24 @@ router.put('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /lessons/{id}:
+ *   delete:
+ *     summary: Delete a lesson
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lesson deleted
+ */
 // DELETE /lessons/:id — formateur only
 router.delete('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -46,6 +161,24 @@ router.delete('/:id', verify, requireRole('formateur'), async (req, res, next) =
   }
 });
 
+/**
+ * @openapi
+ * /lessons/{id}/complete:
+ *   post:
+ *     summary: Mark a lesson as completed
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Lesson marked as completed
+ */
 // POST /lessons/:id/complete — apprenant, must be enrolled
 router.post('/:id/complete', verify, requireRole('apprenant'), checkEnrolled, async (req, res, next) => {
   try {

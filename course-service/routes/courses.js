@@ -4,6 +4,17 @@ const requireRole = require('../middleware/requireRole');
 const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
 
+/**
+ * @openapi
+ * /courses:
+ *   get:
+ *     summary: List all courses
+ *     tags: [Courses]
+ *     responses:
+ *       200:
+ *         description: Array of courses
+ */
+
 // ── Public ─────────────────────────────────────────
 
 // GET /courses — no auth needed
@@ -14,6 +25,34 @@ router.get('/', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/**
+ * @openapi
+ * /courses:
+ *   post:
+ *     summary: Create a course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title]
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Course created
+ *       400:
+ *         description: title is required
+ *       403:
+ *         description: Forbidden
+ */
 // ── Formateur only ─────────────────────────────────
 
 // POST /courses
@@ -26,6 +65,26 @@ router.post('/', verify, requireRole('formateur'), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/**
+ * @openapi
+ * /courses/{id}:
+ *   put:
+ *     summary: Update a course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Course updated
+ *       404:
+ *         description: Course not found
+ */
 // PUT /courses/:id
 router.put('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -39,6 +98,26 @@ router.put('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/**
+ * @openapi
+ * /courses/{id}:
+ *   delete:
+ *     summary: Delete a course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Course deleted
+ *       404:
+ *         description: Course not found
+ */
 // DELETE /courses/:id
 router.delete('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -48,6 +127,28 @@ router.delete('/:id', verify, requireRole('formateur'), async (req, res, next) =
   } catch (err) { next(err); }
 });
 
+/**
+ * @openapi
+ * /courses/{id}/enroll:
+ *   post:
+ *     summary: Enroll in a course
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Enrollment created
+ *       404:
+ *         description: Course not found
+ *       409:
+ *         description: Already enrolled
+ */
 // ── Apprenant only ─────────────────────────────────
 
 // POST /courses/:id/enroll
@@ -67,6 +168,29 @@ router.post('/:id/enroll', verify, requireRole('apprenant'), async (req, res, ne
   }
 });
 
+/**
+ * @openapi
+ * /courses/{id}/enrollment:
+ *   get:
+ *     summary: Check if a user is enrolled in a course
+ *     tags: [Courses]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Enrollment status
+ *       400:
+ *         description: userId query param required
+ */
 // GET /courses/:id/enrollment?userId=X — internal, called by lesson-service
 router.get('/:id/enrollment', async (req, res, next) => {
   try {

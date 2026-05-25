@@ -1,0 +1,1664 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LearnAPI Frontend</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --bg-elev: rgba(19, 23, 31, 0.86);
+      --panel: rgba(25, 30, 40, 0.88);
+      --panel-strong: #1d2430;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.12);
+      --text: #f4f7fb;
+      --muted: #98a2b3;
+      --soft: #c8d1dd;
+      --accent: #f97316;
+      --accent-2: #14b8a6;
+      --accent-3: #60a5fa;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.32);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+      --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font-sans);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(249, 115, 22, 0.25), transparent 28%),
+        radial-gradient(circle at top right, rgba(96, 165, 250, 0.20), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(20, 184, 166, 0.18), transparent 26%),
+        linear-gradient(180deg, #0b0d11 0%, #0f1115 36%, #10151d 100%);
+      overflow-x: hidden;
+    }
+
+    .shell {
+      width: min(1440px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 36px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius-xl) + 6px);
+      background: linear-gradient(135deg, rgba(18, 23, 32, 0.94), rgba(14, 18, 25, 0.72));
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 18px;
+      backdrop-filter: blur(16px);
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto;
+      border-radius: 999px;
+      filter: blur(8px);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .hero::before {
+      width: 220px;
+      height: 220px;
+      right: -70px;
+      top: -85px;
+      background: rgba(249, 115, 22, 0.16);
+    }
+
+    .hero::after {
+      width: 180px;
+      height: 180px;
+      left: 38%;
+      bottom: -96px;
+      background: rgba(96, 165, 250, 0.12);
+    }
+
+    .hero-top {
+      display: flex;
+      gap: 18px;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.95), rgba(20, 184, 166, 0.9));
+      box-shadow: 0 18px 40px rgba(249, 115, 22, 0.22);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      max-width: 860px;
+      color: var(--soft);
+      line-height: 1.65;
+      font-size: 14.5px;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .pill strong { color: var(--text); font-weight: 600; }
+
+    .status {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-width: min(100%, 360px);
+    }
+
+    .status-card {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 16px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .status-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .status-value {
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+    }
+
+    .role-badge,
+    .tiny-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .role-badge.apprenant { background: rgba(96, 165, 250, 0.15); color: #93c5fd; border-color: rgba(96, 165, 250, 0.35); }
+    .role-badge.formateur { background: rgba(249, 115, 22, 0.14); color: #fdba74; border-color: rgba(249, 115, 22, 0.35); }
+    .role-badge.guest { background: rgba(255, 255, 255, 0.08); color: #d1d5db; border-color: rgba(255, 255, 255, 0.12); }
+    .tiny-badge.ok { background: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(34, 197, 94, 0.34); }
+    .tiny-badge.warn { background: rgba(245, 158, 11, 0.16); color: #fcd34d; border-color: rgba(245, 158, 11, 0.34); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr) 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--bg-elev);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-body { padding: 18px; }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tab {
+      appearance: none;
+      border: 1px solid var(--line);
+      color: var(--soft);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .tab:hover { transform: translateY(-1px); border-color: var(--line-strong); color: var(--text); }
+    .tab.active { background: rgba(249, 115, 22, 0.18); border-color: rgba(249, 115, 22, 0.4); color: var(--text); }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .section-grid { display: grid; gap: 16px; }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      padding: 12px 13px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    textarea { min-height: 120px; resize: vertical; line-height: 1.55; }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(249, 115, 22, 0.55);
+      box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 11px 15px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.03); }
+    .btn.primary {
+      background: linear-gradient(135deg, #f97316, #fb923c);
+      color: #120c07;
+      box-shadow: 0 18px 30px rgba(249, 115, 22, 0.18);
+    }
+
+    .btn.secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--soft);
+      border-color: var(--line);
+    }
+
+    .btn.success {
+      background: linear-gradient(135deg, #22c55e, #86efac);
+      color: #06240f;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+
+    .helper,
+    .tip,
+    .warn {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 12px 14px;
+      line-height: 1.65;
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .tip { border-color: rgba(96, 165, 250, 0.22); background: rgba(96, 165, 250, 0.08); }
+    .warn { border-color: rgba(245, 158, 11, 0.25); background: rgba(245, 158, 11, 0.08); }
+
+    .helper strong,
+    .tip strong,
+    .warn strong { color: var(--text); }
+
+    .code-block {
+      background: rgba(12, 15, 20, 0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.8;
+      color: #d6deeb;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.03);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .card-title {
+      display: grid;
+      gap: 5px;
+    }
+
+    .card-title h3,
+    .card-title h4 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: -0.02em;
+    }
+
+    .card-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .card-body { padding: 14px 16px; }
+
+    .card-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .course-item,
+    .lesson-item {
+      display: grid;
+      gap: 10px;
+      padding: 14px 14px 13px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .course-top,
+    .lesson-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .course-name,
+    .lesson-name {
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .course-desc,
+    .lesson-desc {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .course-actions,
+    .lesson-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .split {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .preview-box {
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 16px;
+      min-height: 220px;
+    }
+
+    .preview-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+
+    .preview-content {
+      color: var(--soft);
+      line-height: 1.75;
+      font-size: 14px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .stat .k { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .stat .v { margin-top: 6px; font-weight: 800; font-size: 18px; letter-spacing: -0.03em; }
+
+    .toast-wrap {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 10px;
+      z-index: 60;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: auto;
+      min-width: 280px;
+      max-width: min(92vw, 400px);
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(13, 16, 21, 0.96);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      animation: rise 0.18s ease-out;
+    }
+
+    .toast.ok { border-color: rgba(34, 197, 94, 0.3); }
+    .toast.err { border-color: rgba(239, 68, 68, 0.3); }
+    .toast .small { color: var(--muted); font-size: 12px; margin-top: 4px; line-height: 1.45; }
+
+    .stacked-info {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-inline {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .lesson-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pill-link {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--soft);
+      border-radius: 999px;
+      padding: 10px 13px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .pill-link.active {
+      background: rgba(96, 165, 250, 0.15);
+      color: #dbeafe;
+      border-color: rgba(96, 165, 250, 0.28);
+    }
+
+    .empty {
+      padding: 20px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius-lg);
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.02);
+      line-height: 1.7;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 12px 0;
+    }
+
+    .mini {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .config-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .link-btn {
+      background: transparent;
+      border: 0;
+      color: #c7d2fe;
+      padding: 0;
+      cursor: pointer;
+      font: inherit;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .hidden { display: none !important; }
+
+    @keyframes rise {
+      from { transform: translateY(8px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 1180px) {
+      .grid { grid-template-columns: 1fr; }
+      .status { min-width: 100%; }
+    }
+
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 16px, 100%); padding-top: 8px; }
+      .hero { padding: 20px 16px; }
+      .panel-body { padding: 14px; }
+      .split,
+      .field-inline,
+      .stats { grid-template-columns: 1fr; }
+      .top-actions { justify-content: flex-start; }
+      .status-row { align-items: flex-start; flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="hero-top">
+        <div style="flex: 1 1 620px; min-width: 0;">
+          <div class="brand">
+            <div class="brand-mark">LA</div>
+            <div>
+              <div class="status-label">LearnAPI frontend</div>
+              <h1>Single-file interface for auth, courses, lessons, and progress.</h1>
+            </div>
+          </div>
+          <p class="subtitle">
+            A plain HTML + vanilla JS frontend with no build step. It saves the JWT in localStorage, works with your four service URLs, and gives you a clean browser UI for registration, login, course enrollment, lesson viewing, and progress tracking.
+          </p>
+          <div class="hero-meta">
+            <div class="pill"><strong>Fast path:</strong> open this file in a browser or serve it statically</div>
+            <div class="pill"><strong>Auth:</strong> JWT stored locally after login</div>
+            <div class="pill"><strong>CORS:</strong> required on every backend service</div>
+          </div>
+        </div>
+        <div class="status">
+          <div class="status-card">
+            <div class="status-row">
+              <div>
+                <div class="status-label">Current user</div>
+                <div class="status-value" id="currentUserLabel">Guest</div>
+              </div>
+              <span class="role-badge guest" id="roleBadge">guest</span>
+            </div>
+            <div class="divider"></div>
+            <div class="stacked-info">
+              <div class="mini">Token status: <span id="tokenStatus">not signed in</span></div>
+              <div class="mini">Active course: <span id="activeCourseLabel">none</span></div>
+              <div class="mini">Active lesson: <span id="activeLessonLabel">none</span></div>
+            </div>
+          </div>
+          <div class="status-card">
+            <div class="status-row">
+              <div>
+                <div class="status-label">Quick actions</div>
+                <div class="status-value">Front door controls</div>
+              </div>
+            </div>
+            <div class="actions" style="margin-top: 12px;">
+              <button class="btn secondary" id="reloadAllBtn">Reload data</button>
+              <button class="btn ghost" id="clearSessionBtn">Clear session</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Navigation</h2>
+        </div>
+        <div class="panel-body">
+          <div class="tabs" id="sectionTabs">
+            <button class="tab active" data-section="auth">Auth</button>
+            <button class="tab" data-section="courses">Courses</button>
+            <button class="tab" data-section="lessons">Lessons</button>
+            <button class="tab" data-section="progress">Progress</button>
+            <button class="tab" data-section="config">Config</button>
+          </div>
+          <div class="divider"></div>
+          <div class="helper">
+            <strong>What this frontend covers</strong><br>
+            1. Auth page for register and login, with JWT saved to localStorage.<br>
+            2. Course catalog with public listings, create-course controls, and enroll actions.<br>
+            3. Lesson viewer for enrolled courses, with lesson content and completion tracking.<br>
+            4. Progress dashboard grouped by course.
+          </div>
+        </div>
+      </section>
+
+      <section class="stack">
+        <section class="panel section active" id="section-auth">
+          <div class="panel-head">
+            <h2>Auth</h2>
+            <div class="top-actions">
+              <button class="btn ghost" data-load-courses>Load courses after login</button>
+            </div>
+          </div>
+          <div class="panel-body section-grid">
+            <div class="tip">
+              <strong>Config block expected at the top of index.html:</strong><br>
+              <div class="code-block" style="margin-top: 10px;">
+const API = {
+  auth: 'https://your-auth-service.railway.app',
+  courses: 'https://your-course-service.railway.app',
+  lessons: 'https://your-lesson-service.railway.app',
+  progress: 'https://your-progress-service.railway.app',
+};
+// swap to localhost:300X for local dev
+              </div>
+            </div>
+
+            <div class="split">
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">
+                    <h3>Register</h3>
+                    <p>Create an apprenant or formateur account.</p>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <form id="registerForm" class="form-grid">
+                    <div class="field-inline">
+                      <div class="form-row">
+                        <label for="registerName">Name</label>
+                        <input id="registerName" name="name" autocomplete="name" placeholder="Ada Lovelace" />
+                      </div>
+                      <div class="form-row">
+                        <label for="registerRole">Role</label>
+                        <select id="registerRole" name="role">
+                          <option value="apprenant">apprenant</option>
+                          <option value="formateur">formateur</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div class="field-inline">
+                      <div class="form-row">
+                        <label for="registerEmail">Email</label>
+                        <input id="registerEmail" name="email" type="email" autocomplete="email" placeholder="ada@example.com" />
+                      </div>
+                      <div class="form-row">
+                        <label for="registerPassword">Password</label>
+                        <input id="registerPassword" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" />
+                      </div>
+                    </div>
+                    <div class="actions">
+                      <button class="btn primary" type="submit">Create account</button>
+                      <span class="mini">Returns the created user record.</span>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">
+                    <h3>Login</h3>
+                    <p>Store the JWT and refresh the full app state.</p>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <form id="loginForm" class="form-grid">
+                    <div class="form-row">
+                      <label for="loginEmail">Email</label>
+                      <input id="loginEmail" name="email" type="email" autocomplete="email" placeholder="ada@example.com" />
+                    </div>
+                    <div class="form-row">
+                      <label for="loginPassword">Password</label>
+                      <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Your password" />
+                    </div>
+                    <div class="actions">
+                      <button class="btn primary" type="submit">Sign in</button>
+                      <button class="btn secondary" type="button" id="copyTokenBtn">Copy token</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel section" id="section-courses">
+          <div class="panel-head">
+            <h2>Courses</h2>
+            <div class="top-actions">
+              <button class="btn secondary" id="refreshCoursesBtn">Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body section-grid">
+            <div class="warn">
+              <strong>Browser note:</strong> the backend must allow CORS, or these requests will fail from the frontend.
+            </div>
+
+            <div class="card" id="createCourseCard">
+              <div class="card-head">
+                <div class="card-title">
+                  <h3>Create course</h3>
+                  <p>Visible to formateur accounts only.</p>
+                </div>
+                <span class="tiny-badge ok">formateur</span>
+              </div>
+              <div class="card-body">
+                <form id="createCourseForm" class="form-grid">
+                  <div class="field-inline">
+                    <div class="form-row">
+                      <label for="courseTitle">Title</label>
+                      <input id="courseTitle" name="title" placeholder="Intro to cloud systems" />
+                    </div>
+                    <div class="form-row">
+                      <label for="courseDescription">Description</label>
+                      <input id="courseDescription" name="description" placeholder="Short course description" />
+                    </div>
+                  </div>
+                  <div class="actions">
+                    <button class="btn primary" type="submit">Create course</button>
+                    <span class="mini">Uses POST /courses with your JWT.</span>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">
+                  <h3>Catalog</h3>
+                  <p>Public list of available courses.</p>
+                </div>
+                <span class="tiny-badge warn" id="courseCountBadge">0 courses</span>
+              </div>
+              <div class="card-body">
+                <div id="courseList" class="list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel section" id="section-lessons">
+          <div class="panel-head">
+            <h2>Lessons</h2>
+            <div class="lesson-nav">
+              <select id="lessonCourseSelect" style="min-width: 230px;"></select>
+              <button class="btn secondary" id="loadLessonsBtn">Load lessons</button>
+            </div>
+          </div>
+          <div class="panel-body section-grid">
+            <div class="helper">
+              <strong>Lesson viewer flow:</strong> pick a course, load its lessons, click one to preview content, then mark it complete if you are enrolled.
+            </div>
+            <div class="split">
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">
+                    <h3>Lesson list</h3>
+                    <p>Only enrolled apprenants can load lesson lists.</p>
+                  </div>
+                  <span class="tiny-badge ok" id="lessonCountBadge">0 lessons</span>
+                </div>
+                <div class="card-body">
+                  <div id="lessonList" class="list"></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <div class="card-title">
+                    <h3>Lesson preview</h3>
+                    <p>Click a lesson to inspect its content.</p>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="preview-box">
+                    <p class="preview-title" id="lessonPreviewTitle">No lesson selected</p>
+                    <div class="preview-content" id="lessonPreviewContent">Choose a lesson from the list to see its content here.</div>
+                    <div class="actions" style="margin-top: 16px;">
+                      <button class="btn success" id="markCompleteBtn" disabled>Mark complete</button>
+                      <button class="btn ghost" id="openRawLessonBtn" disabled>Open raw data</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel section" id="section-progress">
+          <div class="panel-head">
+            <h2>Progress</h2>
+            <div class="top-actions">
+              <button class="btn secondary" id="refreshProgressBtn">Refresh progress</button>
+            </div>
+          </div>
+          <div class="panel-body section-grid">
+            <div class="stats">
+              <div class="stat">
+                <div class="k">Courses tracked</div>
+                <div class="v" id="progressCoursesStat">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Completed lessons</div>
+                <div class="v" id="progressLessonsStat">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Last refresh</div>
+                <div class="v" id="progressRefreshedStat">--</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">
+                  <h3>Dashboard</h3>
+                  <p>Grouped by course, based on the authenticated user.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="progressList" class="list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel section" id="section-config">
+          <div class="panel-head">
+            <h2>Config</h2>
+            <div class="top-actions">
+              <button class="btn secondary" id="saveConfigBtn">Save config</button>
+              <button class="btn ghost" id="resetConfigBtn">Reset</button>
+            </div>
+          </div>
+          <div class="panel-body section-grid">
+            <div class="tip">
+              <strong>Current frontend rule:</strong> no build step, no framework, no bundler. Just open the file and point the service URLs at your deployed or local backends.
+            </div>
+            <div class="config-grid">
+              <div class="field-inline">
+                <div class="form-row">
+                  <label for="apiAuth">Auth service URL</label>
+                  <input id="apiAuth" placeholder="https://your-auth-service.railway.app" />
+                </div>
+                <div class="form-row">
+                  <label for="apiCourses">Course service URL</label>
+                  <input id="apiCourses" placeholder="https://your-course-service.railway.app" />
+                </div>
+              </div>
+              <div class="field-inline">
+                <div class="form-row">
+                  <label for="apiLessons">Lesson service URL</label>
+                  <input id="apiLessons" placeholder="https://your-lesson-service.railway.app" />
+                </div>
+                <div class="form-row">
+                  <label for="apiProgress">Progress service URL</label>
+                  <input id="apiProgress" placeholder="https://your-progress-service.railway.app" />
+                </div>
+              </div>
+              <div class="form-row">
+                <label for="lessonListPath">Lesson list path</label>
+                <input id="lessonListPath" placeholder="/lessons?courseId={courseId}" />
+              </div>
+              <div class="helper">
+                <strong>Default local values</strong><br>
+                auth: <span class="muted">http://localhost:3001</span><br>
+                courses: <span class="muted">http://localhost:3002</span><br>
+                lessons: <span class="muted">http://localhost:3003</span><br>
+                progress: <span class="muted">http://localhost:3004</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="stack">
+        <section class="panel">
+          <div class="panel-head">
+            <h2>Session</h2>
+          </div>
+          <div class="panel-body section-grid">
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">
+                  <h3>Token</h3>
+                  <p>Stored in localStorage under <span style="font-family: var(--font-mono);">learnapi.token</span>.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="mini" style="word-break: break-word; font-family: var(--font-mono);" id="tokenPreview">No token saved.</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head">
+                <div class="card-title">
+                  <h3>Raw config</h3>
+                  <p>Editable URLs and lesson list path.</p>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="code-block" id="configPreview"></div>
+              </div>
+            </div>
+            <div class="helper">
+              <strong>Note</strong><br>
+              Your backend already needs CORS enabled. The frontend assumes the four services are reachable from the browser.
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    const STORAGE_KEYS = {
+      token: 'learnapi.token',
+      user: 'learnapi.user',
+      api: 'learnapi.api',
+      lessonPath: 'learnapi.lessonListPath'
+    };
+
+    const DEFAULT_API = {
+      auth: 'http://localhost:3001',
+      courses: 'http://localhost:3002',
+      lessons: 'http://localhost:3003',
+      progress: 'http://localhost:3004'
+    };
+
+    const DEFAULT_LESSON_LIST_PATH = '/lessons?courseId={courseId}';
+
+    const state = {
+      token: localStorage.getItem(STORAGE_KEYS.token) || '',
+      user: JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || 'null'),
+      api: loadApiConfig(),
+      lessonListPath: localStorage.getItem(STORAGE_KEYS.lessonPath) || DEFAULT_LESSON_LIST_PATH,
+      courses: [],
+      lessons: [],
+      selectedCourse: null,
+      selectedLesson: null,
+      progress: []
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+    const el = {
+      tabs: Array.from(document.querySelectorAll('.tab')),
+      sections: {
+        auth: $('#section-auth'),
+        courses: $('#section-courses'),
+        lessons: $('#section-lessons'),
+        progress: $('#section-progress'),
+        config: $('#section-config')
+      },
+      currentUserLabel: $('#currentUserLabel'),
+      roleBadge: $('#roleBadge'),
+      tokenStatus: $('#tokenStatus'),
+      activeCourseLabel: $('#activeCourseLabel'),
+      activeLessonLabel: $('#activeLessonLabel'),
+      tokenPreview: $('#tokenPreview'),
+      configPreview: $('#configPreview'),
+      courseList: $('#courseList'),
+      courseCountBadge: $('#courseCountBadge'),
+      lessonList: $('#lessonList'),
+      lessonCountBadge: $('#lessonCountBadge'),
+      lessonPreviewTitle: $('#lessonPreviewTitle'),
+      lessonPreviewContent: $('#lessonPreviewContent'),
+      progressList: $('#progressList'),
+      progressCoursesStat: $('#progressCoursesStat'),
+      progressLessonsStat: $('#progressLessonsStat'),
+      progressRefreshedStat: $('#progressRefreshedStat'),
+      lessonCourseSelect: $('#lessonCourseSelect'),
+      createCourseCard: $('#createCourseCard'),
+      createCourseForm: $('#createCourseForm'),
+      registerForm: $('#registerForm'),
+      loginForm: $('#loginForm'),
+      copyTokenBtn: $('#copyTokenBtn'),
+      reloadAllBtn: $('#reloadAllBtn'),
+      clearSessionBtn: $('#clearSessionBtn'),
+      refreshCoursesBtn: $('#refreshCoursesBtn'),
+      loadLessonsBtn: $('#loadLessonsBtn'),
+      refreshProgressBtn: $('#refreshProgressBtn'),
+      markCompleteBtn: $('#markCompleteBtn'),
+      openRawLessonBtn: $('#openRawLessonBtn'),
+      saveConfigBtn: $('#saveConfigBtn'),
+      resetConfigBtn: $('#resetConfigBtn'),
+      apiAuth: $('#apiAuth'),
+      apiCourses: $('#apiCourses'),
+      apiLessons: $('#apiLessons'),
+      apiProgress: $('#apiProgress'),
+      lessonListPath: $('#lessonListPath'),
+      courseTitle: $('#courseTitle'),
+      courseDescription: $('#courseDescription'),
+      toastWrap: $('#toastWrap')
+    };
+
+    function loadApiConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.api) || 'null');
+        return { ...DEFAULT_API, ...(saved || {}) };
+      } catch {
+        return { ...DEFAULT_API };
+      }
+    }
+
+    function saveApiConfig() {
+      localStorage.setItem(STORAGE_KEYS.api, JSON.stringify(state.api));
+      localStorage.setItem(STORAGE_KEYS.lessonPath, state.lessonListPath);
+    }
+
+    function persistSession() {
+      if (state.token) {
+        localStorage.setItem(STORAGE_KEYS.token, state.token);
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.token);
+      }
+      if (state.user) {
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(state.user));
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.user);
+      }
+    }
+
+    function showToast(title, detail = '', type = 'ok') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<strong>${escapeHtml(title)}</strong>${detail ? `<div class="small">${escapeHtml(detail)}</div>` : ''}`;
+      el.toastWrap.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(6px)';
+        setTimeout(() => toast.remove(), 220);
+      }, 3200);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function authHeaders(extra = {}) {
+      const headers = { 'Content-Type': 'application/json', ...extra };
+      if (state.token) headers.Authorization = `Bearer ${state.token}`;
+      return headers;
+    }
+
+    async function apiRequest(service, path, options = {}) {
+      const base = state.api[service];
+      if (!base) throw new Error(`Missing API URL for ${service}`);
+      const response = await fetch(`${base}${path}`, {
+        ...options,
+        headers: authHeaders(options.headers || {})
+      });
+      const text = await response.text();
+      const data = text ? tryParseJson(text) : null;
+      if (!response.ok) {
+        const message = data && typeof data === 'object' && data.error ? data.error : (data && data.message ? data.message : `Request failed (${response.status})`);
+        const error = new Error(message);
+        error.status = response.status;
+        error.data = data;
+        throw error;
+      }
+      return data;
+    }
+
+    function tryParseJson(text) {
+      try { return JSON.parse(text); } catch { return text; }
+    }
+
+    function setActiveSection(sectionName) {
+      el.tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.section === sectionName));
+      Object.entries(el.sections).forEach(([name, section]) => section.classList.toggle('active', name === sectionName));
+    }
+
+    function roleLabel() {
+      return state.user?.role || 'guest';
+    }
+
+    function updateStatus() {
+      el.currentUserLabel.textContent = state.user?.email || state.user?.name || 'Guest';
+      el.roleBadge.textContent = roleLabel();
+      el.roleBadge.className = `role-badge ${state.user?.role || 'guest'}`;
+      el.tokenStatus.textContent = state.token ? 'signed in' : 'not signed in';
+      el.activeCourseLabel.textContent = state.selectedCourse ? state.selectedCourse.title : 'none';
+      el.activeLessonLabel.textContent = state.selectedLesson ? state.selectedLesson.title : 'none';
+      el.tokenPreview.textContent = state.token || 'No token saved.';
+      el.createCourseCard.classList.toggle('hidden', state.user?.role !== 'formateur');
+      el.lessonListPath.value = state.lessonListPath;
+      el.apiAuth.value = state.api.auth;
+      el.apiCourses.value = state.api.courses;
+      el.apiLessons.value = state.api.lessons;
+      el.apiProgress.value = state.api.progress;
+      renderConfigPreview();
+    }
+
+    function renderConfigPreview() {
+      el.configPreview.textContent = `const API = {\n  auth: '${state.api.auth}',\n  courses: '${state.api.courses}',\n  lessons: '${state.api.lessons}',\n  progress: '${state.api.progress}',\n};\nconst LESSON_LIST_PATH = '${state.lessonListPath}';\n// swap to localhost:300X for local dev`;
+    }
+
+    function renderCourseSelect() {
+      const options = state.courses.map(course => `<option value="${course._id}">${escapeHtml(course.title)}</option>`).join('');
+      el.lessonCourseSelect.innerHTML = options || '<option value="">No courses loaded</option>';
+      if (state.selectedCourse) {
+        el.lessonCourseSelect.value = state.selectedCourse._id;
+      }
+    }
+
+    function renderCourses() {
+      el.courseCountBadge.textContent = `${state.courses.length} course${state.courses.length === 1 ? '' : 's'}`;
+      renderCourseSelect();
+
+      if (!state.courses.length) {
+        el.courseList.innerHTML = '<div class="empty">No courses loaded yet. Sign in and hit refresh, or create a course if you are a formateur.</div>';
+        return;
+      }
+
+      el.courseList.innerHTML = state.courses.map(course => {
+        const isSelected = state.selectedCourse && state.selectedCourse._id === course._id;
+        const canEnroll = state.user?.role === 'apprenant';
+        const isTeacher = state.user?.role === 'formateur';
+        return `
+          <article class="course-item" data-course-id="${course._id}">
+            <div class="course-top">
+              <div>
+                <p class="course-name">${escapeHtml(course.title)}</p>
+                <p class="course-desc">${escapeHtml(course.description || 'No description yet.')}</p>
+              </div>
+              ${isSelected ? '<span class="tiny-badge ok">active</span>' : ''}
+            </div>
+            <div class="course-actions">
+              <button class="btn secondary" data-select-course="${course._id}">View lessons</button>
+              ${canEnroll ? `<button class="btn success" data-enroll-course="${course._id}">Enroll</button>` : ''}
+              ${isTeacher ? '<span class="mini">Create/edit actions are handled on the backend.</span>' : ''}
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderLessons() {
+      el.lessonCountBadge.textContent = `${state.lessons.length} lesson${state.lessons.length === 1 ? '' : 's'}`;
+      if (!state.selectedCourse) {
+        el.lessonList.innerHTML = '<div class="empty">Choose a course to load its lessons.</div>';
+        return;
+      }
+      if (!state.lessons.length) {
+        el.lessonList.innerHTML = '<div class="empty">No lessons loaded yet. Click <strong>Load lessons</strong> for the selected course.</div>';
+        return;
+      }
+
+      el.lessonList.innerHTML = state.lessons.map(lesson => {
+        const active = state.selectedLesson && state.selectedLesson._id === lesson._id;
+        return `
+          <article class="lesson-item" data-lesson-id="${lesson._id}">
+            <div class="lesson-top">
+              <div>
+                <p class="lesson-name">${lesson.order ?? ''}. ${escapeHtml(lesson.title)}</p>
+                <p class="lesson-desc">${escapeHtml((lesson.content || '').slice(0, 120) || 'No preview text available.')}${lesson.content && lesson.content.length > 120 ? '...' : ''}</p>
+              </div>
+              ${active ? '<span class="tiny-badge ok">selected</span>' : ''}
+            </div>
+            <div class="lesson-actions">
+              <button class="btn secondary" data-open-lesson="${lesson._id}">Preview</button>
+            </div>
+          </article>`;
+      }).join('');
+    }
+
+    function renderProgress() {
+      const groups = Array.isArray(state.progress) ? state.progress : [];
+      el.progressCoursesStat.textContent = String(groups.length);
+      const totalLessons = groups.reduce((sum, entry) => sum + (entry.completedLessons?.length || 0), 0);
+      el.progressLessonsStat.textContent = String(totalLessons);
+      el.progressRefreshedStat.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (!groups.length) {
+        el.progressList.innerHTML = '<div class="empty">No progress data yet. Complete lessons as an apprenant and refresh this panel.</div>';
+        return;
+      }
+
+      el.progressList.innerHTML = groups.map(group => {
+        const lessons = (group.completedLessons || []).map(id => `<span class="pill" style="margin: 0 8px 8px 0;">${escapeHtml(id)}</span>`).join('');
+        return `
+          <article class="card">
+            <div class="card-head">
+              <div class="card-title">
+                <h4>Course ${escapeHtml(group.courseId)}</h4>
+                <p>${group.completedLessons?.length || 0} completed lesson${(group.completedLessons?.length || 0) === 1 ? '' : 's'}</p>
+              </div>
+            </div>
+            <div class="card-body">${lessons || '<div class="mini">No completed lessons yet.</div>'}</div>
+          </article>`;
+      }).join('');
+    }
+
+    function setSelectedCourse(courseId) {
+      state.selectedCourse = state.courses.find(course => course._id === courseId) || null;
+      state.selectedLesson = null;
+      el.lessonPreviewTitle.textContent = 'No lesson selected';
+      el.lessonPreviewContent.textContent = 'Choose a lesson from the list to see its content here.';
+      el.markCompleteBtn.disabled = true;
+      el.openRawLessonBtn.disabled = true;
+      updateStatus();
+      renderCourseSelect();
+      renderLessons();
+    }
+
+    function setSelectedLesson(lessonId) {
+      state.selectedLesson = state.lessons.find(lesson => lesson._id === lessonId) || null;
+      if (!state.selectedLesson) return;
+      el.lessonPreviewTitle.textContent = `${state.selectedLesson.order ?? ''}. ${state.selectedLesson.title}`.trim();
+      el.lessonPreviewContent.textContent = state.selectedLesson.content || 'No content available.';
+      el.markCompleteBtn.disabled = false;
+      el.openRawLessonBtn.disabled = false;
+      updateStatus();
+      renderLessons();
+    }
+
+    async function loadCourses() {
+      const courses = await apiRequest('courses', '/courses', { method: 'GET', headers: {} });
+      state.courses = Array.isArray(courses) ? courses : [];
+      if (!state.selectedCourse && state.courses.length) state.selectedCourse = state.courses[0];
+      renderCourses();
+      updateStatus();
+    }
+
+    async function loadLessons() {
+      if (!state.selectedCourse) {
+        showToast('Pick a course first', 'Choose a course before loading lessons.', 'err');
+        return;
+      }
+      if (state.user?.role !== 'apprenant') {
+        showToast('Apprenant role required', 'The lesson list endpoint is protected for apprenants.', 'err');
+        return;
+      }
+
+      const path = state.lessonListPath.replace('{courseId}', encodeURIComponent(state.selectedCourse._id));
+      const lessons = await apiRequest('lessons', path, { method: 'GET', headers: {} });
+      state.lessons = Array.isArray(lessons) ? lessons : [];
+      renderLessons();
+      showToast('Lessons loaded', `${state.lessons.length} lesson(s) for ${state.selectedCourse.title}.`);
+    }
+
+    async function loadProgress() {
+      if (!state.token) {
+        state.progress = [];
+        renderProgress();
+        showToast('Sign in first', 'Progress requires an authenticated user.', 'err');
+        return;
+      }
+      const data = await apiRequest('progress', '/progress/dashboard', { method: 'GET', headers: {} });
+      state.progress = Array.isArray(data) ? data : [];
+      renderProgress();
+      showToast('Progress updated', 'Loaded your dashboard data.');
+    }
+
+    async function registerUser(formData) {
+      return apiRequest('auth', '/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    }
+
+    async function loginUser(formData) {
+      return apiRequest('auth', '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    }
+
+    async function createCourse(formData) {
+      return apiRequest('courses', '/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+    }
+
+    async function enrollCourse(courseId) {
+      return apiRequest('courses', `/courses/${courseId}/enroll`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+    }
+
+    async function markLessonComplete() {
+      if (!state.selectedLesson) return;
+      await apiRequest('lessons', `/lessons/${state.selectedLesson._id}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      showToast('Marked complete', `${state.selectedLesson.title} was sent to the progress service.`);
+      await loadProgress().catch(err => showToast('Progress refresh failed', err.message, 'err'));
+    }
+
+    function updateAfterLogin(result, fallbackEmail) {
+      if (result?.token) state.token = result.token;
+      state.user = {
+        id: result?.id || result?.userId || state.user?.id || null,
+        email: result?.email || fallbackEmail || state.user?.email || null,
+        role: result?.role || state.user?.role || 'guest'
+      };
+      persistSession();
+      updateStatus();
+      showToast('Signed in', `Role: ${roleLabel()}.`, 'ok');
+    }
+
+    function syncConfigInputs() {
+      el.apiAuth.value = state.api.auth;
+      el.apiCourses.value = state.api.courses;
+      el.apiLessons.value = state.api.lessons;
+      el.apiProgress.value = state.api.progress;
+      el.lessonListPath.value = state.lessonListPath;
+      renderConfigPreview();
+    }
+
+    async function refreshAll() {
+      updateStatus();
+      syncConfigInputs();
+      const tasks = [];
+      tasks.push(loadCourses().catch(err => showToast('Courses failed', err.message, 'err')));
+      if (state.token) {
+        tasks.push(loadProgress().catch(err => showToast('Progress failed', err.message, 'err')));
+      } else {
+        state.progress = [];
+        renderProgress();
+      }
+      if (state.selectedCourse && state.user?.role === 'apprenant') {
+        tasks.push(loadLessons().catch(err => showToast('Lessons failed', err.message, 'err')));
+      } else {
+        state.lessons = [];
+        renderLessons();
+      }
+      await Promise.allSettled(tasks);
+      renderCourses();
+      renderLessons();
+      renderProgress();
+    }
+
+    function clearSession() {
+      state.token = '';
+      state.user = null;
+      state.lessons = [];
+      state.selectedLesson = null;
+      state.progress = [];
+      persistSession();
+      updateStatus();
+      renderCourses();
+      renderLessons();
+      renderProgress();
+      showToast('Session cleared', 'Token and user data removed from localStorage.');
+    }
+
+    function openRawLesson() {
+      if (!state.selectedLesson) return;
+      const blob = new Blob([JSON.stringify(state.selectedLesson, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank', 'noopener');
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+
+    function bindEvents() {
+      document.getElementById('sectionTabs').addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-section]');
+        if (!button) return;
+        setActiveSection(button.dataset.section);
+      });
+
+      el.registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = new FormData(el.registerForm);
+        const payload = Object.fromEntries(form.entries());
+        try {
+          const result = await registerUser(payload);
+          showToast('Account created', `${result.email || payload.email} is ready.`, 'ok');
+          el.registerForm.reset();
+          $('#loginEmail').value = payload.email;
+          $('#loginPassword').focus();
+        } catch (err) {
+          showToast('Register failed', err.message, 'err');
+        }
+      });
+
+      el.loginForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = new FormData(el.loginForm);
+        const payload = Object.fromEntries(form.entries());
+        try {
+          const result = await loginUser(payload);
+          updateAfterLogin(result, payload.email);
+          await refreshAll();
+        } catch (err) {
+          showToast('Login failed', err.message, 'err');
+        }
+      });
+
+      el.createCourseForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (state.user?.role !== 'formateur') {
+          showToast('Formateur only', 'Only formateurs can create courses.', 'err');
+          return;
+        }
+        const form = new FormData(el.createCourseForm);
+        const payload = Object.fromEntries(form.entries());
+        try {
+          const created = await createCourse(payload);
+          showToast('Course created', created.title, 'ok');
+          el.createCourseForm.reset();
+          await loadCourses();
+        } catch (err) {
+          showToast('Create failed', err.message, 'err');
+        }
+      });
+
+      el.courseList.addEventListener('click', async (event) => {
+        const enrollButton = event.target.closest('[data-enroll-course]');
+        const selectButton = event.target.closest('[data-select-course]');
+        if (selectButton) {
+          const courseId = selectButton.dataset.selectCourse;
+          setSelectedCourse(courseId);
+          if (state.user?.role === 'apprenant') {
+            await loadLessons().catch(err => showToast('Lesson load failed', err.message, 'err'));
+          }
+        }
+        if (enrollButton) {
+          try {
+            const courseId = enrollButton.dataset.enrollCourse;
+            const result = await enrollCourse(courseId);
+            showToast('Enrolled', `Enrollment id: ${result._id || 'created'}.`, 'ok');
+            setSelectedCourse(courseId);
+            await loadLessons().catch(err => showToast('Lesson load failed', err.message, 'err'));
+          } catch (err) {
+            showToast('Enroll failed', err.message, 'err');
+          }
+        }
+      });
+
+      el.lessonList.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-open-lesson]');
+        if (!button) return;
+        setSelectedLesson(button.dataset.openLesson);
+      });
+
+      el.lessonCourseSelect.addEventListener('change', async (event) => {
+        const courseId = event.target.value;
+        setSelectedCourse(courseId);
+        if (state.user?.role === 'apprenant') {
+          await loadLessons().catch(err => showToast('Lesson load failed', err.message, 'err'));
+        }
+      });
+
+      el.reloadAllBtn.addEventListener('click', () => refreshAll());
+      el.clearSessionBtn.addEventListener('click', clearSession);
+      el.refreshCoursesBtn.addEventListener('click', () => loadCourses().catch(err => showToast('Courses failed', err.message, 'err')));
+      el.loadLessonsBtn.addEventListener('click', () => loadLessons().catch(err => showToast('Lessons failed', err.message, 'err')));
+      el.refreshProgressBtn.addEventListener('click', () => loadProgress().catch(err => showToast('Progress failed', err.message, 'err')));
+      el.markCompleteBtn.addEventListener('click', () => markLessonComplete().catch(err => showToast('Complete failed', err.message, 'err')));
+      el.openRawLessonBtn.addEventListener('click', openRawLesson);
+      el.copyTokenBtn.addEventListener('click', async () => {
+        if (!state.token) {
+          showToast('No token', 'Sign in first to copy a JWT.', 'err');
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(state.token);
+          showToast('Copied', 'JWT copied to clipboard.', 'ok');
+        } catch {
+          showToast('Copy failed', 'Clipboard access was blocked by the browser.', 'err');
+        }
+      });
+      document.querySelector('[data-load-courses]').addEventListener('click', () => loadCourses().catch(err => showToast('Courses failed', err.message, 'err')));
+
+      el.saveConfigBtn.addEventListener('click', () => {
+        state.api = {
+          auth: el.apiAuth.value.trim() || DEFAULT_API.auth,
+          courses: el.apiCourses.value.trim() || DEFAULT_API.courses,
+          lessons: el.apiLessons.value.trim() || DEFAULT_API.lessons,
+          progress: el.apiProgress.value.trim() || DEFAULT_API.progress
+        };
+        state.lessonListPath = el.lessonListPath.value.trim() || DEFAULT_LESSON_LIST_PATH;
+        saveApiConfig();
+        updateStatus();
+        showToast('Config saved', 'Frontend URLs updated in localStorage.', 'ok');
+      });
+
+      el.resetConfigBtn.addEventListener('click', () => {
+        state.api = { ...DEFAULT_API };
+        state.lessonListPath = DEFAULT_LESSON_LIST_PATH;
+        saveApiConfig();
+        syncConfigInputs();
+        updateStatus();
+        showToast('Config reset', 'Restored localhost defaults.', 'ok');
+      });
+    }
+
+    function hydrateFromStorage() {
+      if (state.user) {
+        state.user = {
+          ...state.user,
+          role: state.user.role || 'guest'
+        };
+      }
+      syncConfigInputs();
+      updateStatus();
+      if (!state.token) {
+        renderProgress();
+      }
+    }
+
+    (function init() {
+      bindEvents();
+      hydrateFromStorage();
+      refreshAll().catch(err => showToast('Startup warning', err.message, 'err'));
+    })();
+  </script>
+</body>
+</html>
