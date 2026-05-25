@@ -6,6 +6,16 @@ const Enrollment = require('../models/Enrollment');
 
 // ── Public ─────────────────────────────────────────
 
+/**
+ * @openapi
+ * /courses:
+ *   get:
+ *     summary: List courses
+ *     tags: [Courses]
+ *     responses:
+ *       200:
+ *         description: Courses
+ */
 // GET /courses — no auth needed
 router.get('/', async (req, res, next) => {
   try {
@@ -16,6 +26,34 @@ router.get('/', async (req, res, next) => {
 
 // ── Formateur only ─────────────────────────────────
 
+/**
+ * @openapi
+ * /courses:
+ *   post:
+ *     summary: Create course (formateur)
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [title]
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Course created
+ *       400:
+ *         description: Validation error
+ *       403:
+ *         description: Forbidden
+ */
 // POST /courses
 router.post('/', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -26,6 +64,37 @@ router.post('/', verify, requireRole('formateur'), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/**
+ * @openapi
+ * /courses/{id}:
+ *   put:
+ *     summary: Update course (formateur)
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Course updated
+ *       404:
+ *         description: Course not found
+ */
 // PUT /courses/:id
 router.put('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -39,6 +108,26 @@ router.put('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+/**
+ * @openapi
+ * /courses/{id}:
+ *   delete:
+ *     summary: Delete course (formateur)
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Course deleted
+ *       404:
+ *         description: Course not found
+ */
 // DELETE /courses/:id
 router.delete('/:id', verify, requireRole('formateur'), async (req, res, next) => {
   try {
@@ -50,6 +139,28 @@ router.delete('/:id', verify, requireRole('formateur'), async (req, res, next) =
 
 // ── Apprenant only ─────────────────────────────────
 
+/**
+ * @openapi
+ * /courses/{id}/enroll:
+ *   post:
+ *     summary: Enroll in course (apprenant)
+ *     tags: [Courses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       201:
+ *         description: Enrollment created
+ *       404:
+ *         description: Course not found
+ *       409:
+ *         description: Already enrolled
+ */
 // POST /courses/:id/enroll
 router.post('/:id/enroll', verify, requireRole('apprenant'), async (req, res, next) => {
   try {
@@ -67,6 +178,29 @@ router.post('/:id/enroll', verify, requireRole('apprenant'), async (req, res, ne
   }
 });
 
+/**
+ * @openapi
+ * /courses/{id}/enrollment:
+ *   get:
+ *     summary: Check enrollment (internal)
+ *     tags: [Courses]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Enrollment status
+ *       400:
+ *         description: Missing userId
+ */
 // GET /courses/:id/enrollment?userId=X — internal, called by lesson-service
 router.get('/:id/enrollment', async (req, res, next) => {
   try {

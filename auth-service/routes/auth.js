@@ -2,6 +2,37 @@ const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 description: apprenant or formateur
+ *     responses:
+ *       201:
+ *         description: User created
+ *       400:
+ *         description: Missing required fields
+ *       409:
+ *         description: Email already registered
+ */
 // POST /auth/register
 router.post('/register', async (req, res, next) => {
   try {
@@ -30,6 +61,30 @@ router.post('/register', async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     summary: Login and get JWT
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login success
+ *       401:
+ *         description: Invalid email or password
+ */
 // POST /auth/login
 router.post('/login', async (req, res, next) => {
   try {

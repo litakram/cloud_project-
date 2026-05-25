@@ -3,6 +3,20 @@ const verify = require('../middleware/verifyToken');
 const requireRole = require('../middleware/requireRole');
 const Progress = require('../models/Progress');
 
+/**
+ * @openapi
+ * /progress/dashboard:
+ *   get:
+ *     summary: Get learner progress dashboard
+ *     tags: [Progress]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Progress by course
+ *       403:
+ *         description: Forbidden
+ */
 // GET /progress/dashboard — apprenant sees their own progress
 router.get('/dashboard', verify, requireRole('apprenant'), async (req, res, next) => {
   try {
